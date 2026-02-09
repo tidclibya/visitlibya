@@ -1,31 +1,28 @@
-// main.js - ملف JavaScript الرئيسي لموقع Visit Libya
+// main.js - الملف الرئيسي للجافاسكريبت
 
 document.addEventListener('DOMContentLoaded', function() {
+    
     // ====================
     // 1. Mobile Navigation
     // ====================
     const navToggle = document.querySelector('.nav-toggle');
-    const navMenu = document.querySelector('.nav-menu');
+    const navLinks = document.querySelector('.nav-links');
     
-    if (navToggle && navMenu) {
+    if (navToggle && navLinks) {
         navToggle.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
+            navLinks.classList.toggle('active');
             this.classList.toggle('active');
-            this.setAttribute('aria-expanded', 
-                this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'
-            );
         });
-
+        
         // إغلاق القائمة عند النقر على رابط
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
+                navLinks.classList.remove('active');
                 navToggle.classList.remove('active');
-                navToggle.setAttribute('aria-expanded', 'false');
             });
         });
     }
-
+    
     // ====================
     // 2. Back to Top Button
     // ====================
@@ -39,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 backToTop.classList.remove('visible');
             }
         });
-
+        
         backToTop.addEventListener('click', function() {
             window.scrollTo({
                 top: 0,
@@ -47,57 +44,23 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-
-    // ====================
-    // 3. Animated Counter
-    // ====================
-    const counters = document.querySelectorAll('.stat-number');
     
-    if (counters.length > 0) {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const counter = entry.target;
-                    const target = parseInt(counter.getAttribute('data-count'));
-                    const duration = 2000; // 2 seconds
-                    const step = target / (duration / 16); // 60fps
-                    
-                    let current = 0;
-                    const timer = setInterval(() => {
-                        current += step;
-                        if (current >= target) {
-                            counter.textContent = target;
-                            clearInterval(timer);
-                        } else {
-                            counter.textContent = Math.floor(current);
-                        }
-                    }, 16);
-                    
-                    observer.unobserve(counter);
-                }
-            });
-        }, {
-            threshold: 0.5
-        });
-
-        counters.forEach(counter => {
-            observer.observe(counter);
-        });
-    }
-
     // ====================
-    // 4. Newsletter Form
+    // 3. Newsletter Form
     // ====================
-    const newsletterForm = document.getElementById('newsletter-form');
+    const subscribeForm = document.getElementById('subscribeForm');
     
-    if (newsletterForm) {
-        newsletterForm.addEventListener('submit', function(e) {
+    if (subscribeForm) {
+        subscribeForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const emailInput = this.querySelector('input[type="email"]');
-            const messageDiv = document.getElementById('form-message');
             
-            if (!emailInput.value || !isValidEmail(emailInput.value)) {
-                showMessage(messageDiv, 'الرجاء إدخال بريد إلكتروني صحيح.', 'error');
+            const emailInput = this.querySelector('input[type="email"]');
+            const messageDiv = document.getElementById('formMessage');
+            const email = emailInput.value.trim();
+            
+            // التحقق من صحة البريد الإلكتروني
+            if (!email || !isValidEmail(email)) {
+                showMessage(messageDiv, 'الرجاء إدخال بريد إلكتروني صحيح', 'error');
                 return;
             }
             
@@ -110,38 +73,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // إعادة تعيين الرسالة بعد 5 ثواني
                 setTimeout(() => {
-                    messageDiv.textContent = '';
-                    messageDiv.className = 'form-message';
+                    messageDiv.style.display = 'none';
                 }, 5000);
             }, 1500);
         });
     }
-
-    // ====================
-    // 5. FAQ Accordion
-    // ====================
-    const faqToggles = document.querySelectorAll('[data-toggle="faq"]');
     
-    faqToggles.forEach(toggle => {
-        toggle.addEventListener('click', function() {
-            const content = this.nextElementSibling;
-            content.classList.toggle('active');
-            this.classList.toggle('active');
+    // ====================
+    // 4. Smooth Scrolling
+    // ====================
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
             
-            // تغيير الأيقونة
-            const icon = this.querySelector('.toggle-icon');
-            if (icon) {
-                if (content.classList.contains('active')) {
-                    icon.classList.remove('fa-plus');
-                    icon.classList.add('fa-minus');
-                } else {
-                    icon.classList.remove('fa-minus');
-                    icon.classList.add('fa-plus');
-                }
+            if (href === '#') return;
+            
+            e.preventDefault();
+            const targetElement = document.querySelector(href);
+            
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 80,
+                    behavior: 'smooth'
+                });
             }
         });
     });
-
+    
+    // ====================
+    // 5. Active Navigation Link
+    // ====================
+    function setActiveNavLink() {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            const linkPath = link.getAttribute('href');
+            
+            if (currentPath.endsWith(linkPath) || 
+                (linkPath === 'index.html' && currentPath.endsWith('/'))) {
+                link.classList.add('active');
+            }
+        });
+    }
+    
+    setActiveNavLink();
+    
     // ====================
     // 6. Image Lazy Loading
     // ====================
@@ -167,134 +145,49 @@ document.addEventListener('DOMContentLoaded', function() {
             rootMargin: '50px 0px',
             threshold: 0.1
         });
-
+        
         document.querySelectorAll('img[data-src]').forEach(img => {
             imageObserver.observe(img);
         });
     }
-
-    // ====================
-    // 7. Smooth Scrolling
-    // ====================
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            const href = this.getAttribute('href');
-            
-            // استبعاد روابط الهاش الفارغة
-            if (href === '#') return;
-            
-            e.preventDefault();
-            const targetElement = document.querySelector(href);
-            
-            if (targetElement) {
-                window.scrollTo({
-                    top: targetElement.offsetTop - 80,
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
-
-    // ====================
-    // 8. Active Nav Link
-    // ====================
-    function setActiveNavLink() {
-        const currentPath = window.location.pathname;
-        const navLinks = document.querySelectorAll('.nav-link');
-        
-        navLinks.forEach(link => {
-            link.classList.remove('active');
-            const linkPath = link.getAttribute('href');
-            
-            if (currentPath.endsWith(linkPath) || 
-                (linkPath === 'index.html' && (currentPath.endsWith('/') || currentPath.endsWith('/index.html')))) {
-                link.classList.add('active');
-            }
-        });
-    }
     
-    setActiveNavLink();
-
     // ====================
-    // 9. Scroll Animations
+    // 7. Counter Animation
     // ====================
-    const scrollElements = document.querySelectorAll('.scroll-animate');
+    const counters = document.querySelectorAll('.counter');
     
-    if (scrollElements.length > 0) {
-        const elementInView = (el, percentageScroll = 100) => {
-            const elementTop = el.getBoundingClientRect().top;
-            return (
-                elementTop <= 
-                ((window.innerHeight || document.documentElement.clientHeight) * (percentageScroll/100))
-            );
-        };
-
-        const displayScrollElement = (element) => {
-            element.classList.add('animated');
-        };
-
-        const hideScrollElement = (element) => {
-            element.classList.remove('animated');
-        };
-
-        const handleScrollAnimation = () => {
-            scrollElements.forEach((el) => {
-                if (elementInView(el, 90)) {
-                    displayScrollElement(el);
-                } else {
-                    hideScrollElement(el);
+    if (counters.length > 0) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counter = entry.target;
+                    const target = parseInt(counter.getAttribute('data-count'));
+                    const duration = 2000;
+                    const step = target / (duration / 16);
+                    
+                    let current = 0;
+                    const timer = setInterval(() => {
+                        current += step;
+                        if (current >= target) {
+                            counter.textContent = target;
+                            clearInterval(timer);
+                        } else {
+                            counter.textContent = Math.floor(current);
+                        }
+                    }, 16);
+                    
+                    observer.unobserve(counter);
                 }
             });
-        };
-
-        // التهيئة الأولى
-        handleScrollAnimation();
-        window.addEventListener('scroll', () => {
-            throttle(handleScrollAnimation, 250);
+        }, {
+            threshold: 0.5
+        });
+        
+        counters.forEach(counter => {
+            observer.observe(counter);
         });
     }
-
-    // ====================
-    // 10. Language Switcher
-    // ====================
-    const langSwitch = document.querySelector('.lang-switch');
     
-    if (langSwitch) {
-        langSwitch.addEventListener('click', function(e) {
-            e.preventDefault();
-            const currentLang = document.documentElement.lang;
-            const newLang = currentLang === 'ar' ? 'en' : 'ar';
-            
-            // هنا يمكنك إضافة منطق تبديل اللغة
-            // مثل إعادة التوجيه إلى صفحة اللغة الأخرى أو تغيير المحتوى ديناميكيًا
-            alert(`سيتم تبديل اللغة إلى ${newLang === 'en' ? 'الإنجليزية' : 'العربية'}`);
-            
-            // مثال: تغيير اتجاه الصفحة
-            if (newLang === 'en') {
-                document.documentElement.dir = 'ltr';
-                document.documentElement.lang = 'en';
-            } else {
-                document.documentElement.dir = 'rtl';
-                document.documentElement.lang = 'ar';
-            }
-        });
-    }
-
-    // ====================
-    // 11. Image Modal Gallery
-    // ====================
-    const galleryImages = document.querySelectorAll('[data-gallery]');
-    
-    if (galleryImages.length > 0) {
-        galleryImages.forEach(img => {
-            img.addEventListener('click', function() {
-                const src = this.src;
-                const alt = this.alt;
-                createImageModal(src, alt);
-            });
-        });
-    }
-
     // ====================
     // Helper Functions
     // ====================
@@ -312,58 +205,84 @@ document.addEventListener('DOMContentLoaded', function() {
         element.textContent = message;
         element.className = 'form-message';
         element.classList.add(type);
+        element.style.display = 'block';
     }
     
-    // Throttle function لتحسين الأداء
-    function throttle(func, limit) {
-        let inThrottle;
-        return function() {
-            const args = arguments;
-            const context = this;
-            if (!inThrottle) {
-                func.apply(context, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
-        };
-    }
-    
-    // إنشاء مودال للصور
-    function createImageModal(src, alt) {
-        const modal = document.createElement('div');
-        modal.className = 'image-modal';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <img src="${src}" alt="${alt}">
-                <p>${alt}</p>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        document.body.style.overflow = 'hidden';
-        
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal || e.target.classList.contains('close-modal')) {
-                document.body.removeChild(modal);
-                document.body.style.overflow = 'auto';
-            }
-        });
-    }
-    
-    // تحميل الصفحة بسلاسة
+    // إضافة فئة loaded للجسم بعد تحميل الصفحة
     window.addEventListener('load', function() {
         document.body.classList.add('loaded');
-        
-        // إخفاء شاشة التحميل إذا كانت موجودة
-        const loader = document.querySelector('.page-loader');
-        if (loader) {
-            setTimeout(() => {
-                loader.style.opacity = '0';
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                }, 300);
-            }, 500);
+    });
+    
+});
+
+// دالة ثانوية للتحقق من النماذج
+function validateForm(form) {
+    const inputs = form.querySelectorAll('input[required], textarea[required]');
+    let isValid = true;
+    
+    inputs.forEach(input => {
+        if (!input.value.trim()) {
+            isValid = false;
+            input.classList.add('error');
+        } else {
+            input.classList.remove('error');
         }
     });
-});
+    
+    return isValid;
+}
+
+// دالة لعرض التنبيهات
+function showAlert(message, type = 'info') {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type}`;
+    alert.textContent = message;
+    alert.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
+        color: white;
+        border-radius: 8px;
+        z-index: 9999;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            document.body.removeChild(alert);
+        }, 300);
+    }, 3000);
+}
+
+// إضافة أنماط CSS للتنبيهات
+const alertStyles = document.createElement('style');
+alertStyles.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(alertStyles);
